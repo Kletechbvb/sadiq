@@ -347,86 +347,98 @@
             <h3>Prim's Algorithm Implementation</h3>
             <div class="code-container">
                 <pre>
-#include iostream
-#include vector
-#include climits
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <cstdlib> // For rand() and srand()
+#include <ctime>   // For time()
 using namespace std;
 
 // Function to find the vertex with the minimum key value
-int findMinKeyVertex(vector<int>& key, vector<bool>& inMST, int numVertices) {
-    int minKey = INT_MAX; // Initialize minimum key value
-    int minIndex = -1;    // Initialize index of the vertex with minimum key
-
-    for (int v = 0; v < numVertices; v++) {
-        // Check if the vertex is not in MST and has a smaller key value
-        if (!inMST[v] && key[v] < minKey) {
-            minKey = key[v];
+int minKeyVertex(vector<int>& key, vector<bool>& mstSet, int vertices) {
+    int min = INT_MAX, minIndex;
+    for (int v = 0; v < vertices; v++) {
+        if (!mstSet[v] && key[v] < min) {
+            min = key[v];
             minIndex = v;
         }
     }
     return minIndex;
 }
 
-// Function to print the constructed MST
-void printMST(vector<int>& parent, vector<vector<int>>& graph, int numVertices) {
-    cout << "Pipeline Connections:\n";
-    cout << "From -> To : Cost\n";
-    for (int v = 1; v < numVertices; v++) {
-        cout << parent[v] << " -> " << v << " : " << graph[v][parent[v]] << "\n";
+// Function to print the constructed MST and calculate total minimum cost
+void printMST(vector<int>& parent, vector<vector<int>>& graph, int vertices) {
+    cout << "Optimal Pipeline Connections:\n";
+    cout << "Edge \tCost\n";
+    int totalCost = 0; // Variable to store the total minimum cost
+    for (int i = 1; i < vertices; i++) {
+        cout << parent[i] << " - " << i << " \t" << graph[i][parent[i]] << "\n";
+        totalCost += graph[i][parent[i]]; // Add the cost of each edge to the total
     }
+    cout << "Total Minimum Cost: " << totalCost << "\n"; // Print the total cost
 }
 
-// Function to construct and find the Minimum Spanning Tree (MST) using Prim's Algorithm
-void primMST(vector<vector<int>>& graph, int numVertices) {
-    vector<int> parent(numVertices); // Array to store the constructed MST
-    vector<int> key(numVertices);    // Key values used to pick the minimum weight edge
-    vector<bool> inMST(numVertices); // To represent whether a vertex is in MST
+// Prim's Algorithm to find MST
+void primAlgorithm(vector<vector<int>>& graph, int vertices) {
+    vector<int> parent(vertices); // Store the MST structure
+    vector<int> key(vertices, INT_MAX); // Key values to pick minimum cost edge
+    vector<bool> mstSet(vertices, false); // Track included vertices in MST
 
-    // Initialize all keys as infinite and inMST as false
-    for (int i = 0; i < numVertices; i++) {
-        key[i] = INT_MAX;
-        inMST[i] = false;
-    }
-
-    // Start with the first vertex
-    key[0] = 0;    // Make key 0 so that this vertex is picked first
+    key[0] = 0; // Start with the first vertex
     parent[0] = -1; // First node is always the root of MST
 
-    // Construct the MST
-    for (int count = 0; count < numVertices - 1; count++) {
-        // Pick the vertex with the minimum key value
-        int u = findMinKeyVertex(key, inMST, numVertices);
+    for (int count = 0; count < vertices - 1; count++) {
+        int u = minKeyVertex(key, mstSet, vertices); // Pick the minimum key vertex
+        mstSet[u] = true; // Add the vertex to the MST set
 
-        // Add the picked vertex to the MST
-        inMST[u] = true;
-
-        // Update key values and parent index of adjacent vertices
-        for (int v = 0; v < numVertices; v++) {
-            // Update key only if the edge exists, the vertex is not in MST, and the edge weight is smaller than the current key
-            if (graph[u][v] && !inMST[v] && graph[u][v] < key[v]) {
+        // Update key values and parent for adjacent vertices
+        for (int v = 0; v < vertices; v++) {
+            if (graph[u][v] && !mstSet[v] && graph[u][v] < key[v]) {
                 parent[v] = u;
                 key[v] = graph[u][v];
             }
         }
     }
 
-    // Print the constructed MST
-    printMST(parent, graph, numVertices);
+    // Print the constructed MST and total minimum cost
+    printMST(parent, graph, vertices);
+}
+
+// Function to generate a random cost matrix
+vector<vector<int>> generateCostMatrix(int vertices) {
+    vector<vector<int>> graph(vertices, vector<int>(vertices, 0)); // Initialize with 0
+    srand(time(0)); // Seed for random number generation
+
+    for (int i = 0; i < vertices; i++) {
+        for (int j = i + 1; j < vertices; j++) {
+            int cost = rand() % 100 + 1; // Random cost between 1 and 100
+            graph[i][j] = cost;
+            graph[j][i] = cost; // Ensure symmetry for undirected graph
+        }
+    }
+
+    return graph;
 }
 
 int main() {
-    // Example graph representing pipeline costs between areas
-    int numVertices = 5; // Number of areas (vertices)
-    vector<vector<int>> graph = {
-        {0, 2, 0, 6, 0},  // Area 0
-        {2, 0, 3, 8, 5},  // Area 1
-        {0, 3, 0, 0, 7},  // Area 2
-        {6, 8, 0, 0, 9},  // Area 3
-        {0, 5, 7, 9, 0}   // Area 4
-    };
+    int vertices;
+    cout << "Enter the number of areas (vertices): ";
+    cin >> vertices;
 
-    // Find and print the MST
-    primMST(graph, numVertices);
+    // Generate a random cost matrix
+    vector<vector<int>> graph = generateCostMatrix(vertices);
+
+    // Print the cost matrix
+    cout << "\nGenerated Cost Matrix:\n";
+    for (int i = 0; i < vertices; i++) {
+        for (int j = 0; j < vertices; j++) {
+            cout << graph[i][j] << "\t";
+        }
+        cout << "\n";
+    }
+
+    // Run Prim's Algorithm
+    primAlgorithm(graph, vertices);
 
     return 0;
 }
@@ -434,7 +446,48 @@ int main() {
             </div>
         </div>
     </section>
+<!-- Why Prim's Algorithm? Section -->
+<section class="section" id="why-prim">
+    <h2 class="section-title">Why Prim's Algorithm?</h2>
+    <div class="section-content">
+        <h3>Why is Prim's Algorithm the Best Choice?</h3>
+        <p>
+            Prim's Algorithm is particularly well-suited for solving the pipeline construction problem due to the following reasons:
+        </p>
+        <ul>
+            <li><strong>Efficiency</strong>: Prim's Algorithm is efficient for dense graphs, which is often the case in pipeline networks where many connections are possible.</li>
+            <li><strong>Guaranteed Optimality</strong>: It guarantees the construction of a Minimum Spanning Tree (MST), ensuring the least total cost for connecting all areas.</li>
+            <li><strong>Simplicity</strong>: The algorithm is straightforward to implement and understand, making it accessible for practical applications.</li>
+            <li><strong>Scalability</strong>: It performs well even as the number of vertices (areas) increases, making it suitable for large-scale projects.</li>
+        </ul>
 
+        <h3>Why Not Other Algorithms?</h3>
+        <p>
+            While other algorithms like Kruskal's Algorithm or Dijkstra's Algorithm can also be used, they have certain limitations:
+        </p>
+        <ul>
+            <li><strong>Kruskal's Algorithm</strong>: Although Kruskal's Algorithm also finds an MST, it is generally more efficient for sparse graphs. In dense graphs, it can be slower due to its reliance on sorting all edges.</li>
+            <li><strong>Dijkstra's Algorithm</strong>: Dijkstra's Algorithm is designed for finding the shortest path from a single source to all other nodes, not for constructing an MST. It doesn't guarantee the minimum total cost for connecting all nodes.</li>
+            <li><strong>Borůvka's Algorithm</strong>: This algorithm is efficient but more complex to implement and is typically used in parallel computing environments, which is unnecessary for this problem.</li>
+        </ul>
+
+        <h3>What Are the Alternatives?</h3>
+        <p>
+            While Prim's Algorithm is the best choice for this problem, there are alternative approaches that could be considered depending on the specific requirements:
+        </p>
+        <ul>
+            <li><strong>Kruskal's Algorithm</strong>: As mentioned, Kruskal's Algorithm is a good alternative for sparse graphs. It sorts all edges and adds the smallest edge that doesn't form a cycle until all vertices are connected.</li>
+            <li><strong>Borůvka's Algorithm</strong>: This algorithm is another alternative that works well in parallel computing environments. It processes edges in parallel and merges components iteratively.</li>
+            <li><strong>Genetic Algorithms</strong>: For very large and complex networks, genetic algorithms can be used to find near-optimal solutions. However, they are computationally expensive and don't guarantee the optimal solution.</li>
+            <li><strong>Simulated Annealing</strong>: This is another heuristic approach that can be used for large-scale problems. It explores the solution space to find a good solution but doesn't guarantee the minimum cost.</li>
+        </ul>
+
+        <h3>Conclusion</h3>
+        <p>
+            Prim's Algorithm strikes the right balance between efficiency, simplicity, and optimality for the pipeline construction problem. While other algorithms and methods have their own advantages, Prim's Algorithm is the most suitable choice for ensuring cost-effective and efficient water supply networks.
+        </p>
+    </div>
+</section>
 
 
     <!-- Footer -->
