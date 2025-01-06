@@ -349,10 +349,92 @@
                 <pre>
 #include <iostream>
 #include <vector>
-#include <climits>
-#include <cstdlib> // For rand() and srand()
-#include <ctime>   // For time()
+#include <algorithm> // For sorting
+#include <ctime>     // For rand() and srand()
+#include <cstdlib>   // For time()
+#include <climits>   // For INT_MAX
 using namespace std;
+
+// Structure to represent an edge
+struct Edge {
+    int src, dest, weight;
+};
+
+// Structure to represent a subset for union-find
+struct Subset {
+    int parent;
+    int rank;
+};
+
+// Function to find the parent of a vertex (uses path compression)
+int findParent(vector<Subset>& subsets, int i) {
+    if (subsets[i].parent != i) {
+        subsets[i].parent = findParent(subsets, subsets[i].parent);
+    }
+    return subsets[i].parent;
+}
+
+// Function to perform union of two subsets (uses union by rank)
+void unionSubsets(vector<Subset>& subsets, int x, int y) {
+    int xroot = findParent(subsets, x);
+    int yroot = findParent(subsets, y);
+
+    if (subsets[xroot].rank < subsets[yroot].rank) {
+        subsets[xroot].parent = yroot;
+    } else if (subsets[xroot].rank > subsets[yroot].rank) {
+        subsets[yroot].parent = xroot;
+    } else {
+        subsets[yroot].parent = xroot;
+        subsets[xroot].rank++;
+    }
+}
+
+// Function to compare edges based on their weight (for sorting)
+bool compareEdges(Edge a, Edge b) {
+    return a.weight < b.weight;
+}
+
+// Kruskal's Algorithm to find MST
+void kruskalAlgorithm(vector<Edge>& edges, int vertices) {
+    vector<Edge> mst; // Stores the edges of the MST
+    vector<Subset> subsets(vertices);
+
+    // Initialize subsets for union-find
+    for (int i = 0; i < vertices; i++) {
+        subsets[i].parent = i;
+        subsets[i].rank = 0;
+    }
+
+    // Sort all edges in non-decreasing order of weight
+    sort(edges.begin(), edges.end(), compareEdges);
+
+    int edgeCount = 0; // Counter for edges added to MST
+    int totalCost = 0; // Total cost of the MST
+
+    // Iterate through all edges
+    for (auto edge : edges) {
+        if (edgeCount == vertices - 1) break; // MST has (V-1) edges
+
+        int x = findParent(subsets, edge.src);
+        int y = findParent(subsets, edge.dest);
+
+        // If including this edge doesn't form a cycle, add it to MST
+        if (x != y) {
+            mst.push_back(edge);
+            unionSubsets(subsets, x, y);
+            totalCost += edge.weight;
+            edgeCount++;
+        }
+    }
+
+    // Print the constructed MST and total minimum cost
+    cout << "\nKruskal's Algorithm Result:\n";
+    cout << "Edge \tCost\n";
+    for (auto edge : mst) {
+        cout << edge.src << " - " << edge.dest << " \t" << edge.weight << "\n";
+    }
+    cout << "Total Minimum Cost: " << totalCost << "\n";
+}
 
 // Function to find the vertex with the minimum key value
 int minKeyVertex(vector<int>& key, vector<bool>& mstSet, int vertices) {
@@ -364,18 +446,6 @@ int minKeyVertex(vector<int>& key, vector<bool>& mstSet, int vertices) {
         }
     }
     return minIndex;
-}
-
-// Function to print the constructed MST and calculate total minimum cost
-void printMST(vector<int>& parent, vector<vector<int>>& graph, int vertices) {
-    cout << "Optimal Pipeline Connections:\n";
-    cout << "Edge \tCost\n";
-    int totalCost = 0; // Variable to store the total minimum cost
-    for (int i = 1; i < vertices; i++) {
-        cout << parent[i] << " - " << i << " \t" << graph[i][parent[i]] << "\n";
-        totalCost += graph[i][parent[i]]; // Add the cost of each edge to the total
-    }
-    cout << "Total Minimum Cost: " << totalCost << "\n"; // Print the total cost
 }
 
 // Prim's Algorithm to find MST
@@ -401,7 +471,14 @@ void primAlgorithm(vector<vector<int>>& graph, int vertices) {
     }
 
     // Print the constructed MST and total minimum cost
-    printMST(parent, graph, vertices);
+    cout << "\nPrim's Algorithm Result:\n";
+    cout << "Edge \tCost\n";
+    int totalCost = 0;
+    for (int i = 1; i < vertices; i++) {
+        cout << parent[i] << " - " << i << " \t" << graph[i][parent[i]] << "\n";
+        totalCost += graph[i][parent[i]];
+    }
+    cout << "Total Minimum Cost: " << totalCost << "\n";
 }
 
 // Function to generate a random cost matrix
@@ -418,6 +495,19 @@ vector<vector<int>> generateCostMatrix(int vertices) {
     }
 
     return graph;
+}
+
+// Function to convert a cost matrix to a list of edges
+vector<Edge> convertToEdges(vector<vector<int>>& graph, int vertices) {
+    vector<Edge> edges;
+    for (int i = 0; i < vertices; i++) {
+        for (int j = i + 1; j < vertices; j++) {
+            if (graph[i][j] != 0) {
+                edges.push_back({i, j, graph[i][j]});
+            }
+        }
+    }
+    return edges;
 }
 
 int main() {
@@ -437,12 +527,17 @@ int main() {
         cout << "\n";
     }
 
+    // Convert the cost matrix to a list of edges for Kruskal's Algorithm
+    vector<Edge> edges = convertToEdges(graph, vertices);
+
     // Run Prim's Algorithm
     primAlgorithm(graph, vertices);
 
+    // Run Kruskal's Algorithm
+    kruskalAlgorithm(edges, vertices);
+
     return 0;
-}
-                </pre>
+}       </pre>
             </div>
         </div>
     </section>
