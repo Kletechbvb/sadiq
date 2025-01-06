@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimizing Pipeline Construction</title>
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #030303;
+            color: #fff;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: rgba(15, 15, 15, 0.95);
+            padding: 1.2rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0066ff, #00ccff);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 22px;
+        }
+
+        .nav-items {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-items a {
+            text-decoration: none;
+            color: #fff;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            opacity: 0.8;
+        }
+
+        .nav-items a:hover, .nav-items a.active {
+            opacity: 1;
+            color: #00ccff;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1000px;
+        }
+
+        .subtitle {
+            color: #00ccff;
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .title {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #ffffff 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 3rem;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .profile img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px solid #00ccff;
+        }
+
+        .profile-info {
+            text-align: left;
+        }
+
+        .profile-info h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #00ccff;
+        }
+
+        .profile-info p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Scroll Down Button */
+        .scroll-down {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #0066ff, #00ccff);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 102, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .scroll-down:hover {
+            transform: translateX(-50%) translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 102, 255, 0.4);
+        }
+
+        /* Sections */
+        .section {
+            padding: 8rem 2rem;
+            background: #080808;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 4rem;
+            background: linear-gradient(135deg, #0066ff, #00ccff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .section-content h3 {
+            color: #00ccff;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .section-content p {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-content ul {
+            margin-left: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-content ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Showcase */
+        .code-container {
+            background: #111;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+
+        pre {
+            color: #00ccff;
+            font-family: monospace;
+            font-size: 1rem;
+            white-space: pre-wrap;
+        }
+
+       .webview-section {
+    padding: 2rem;
+    background: #080808;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.webview-container {
+    width: 100%;
+    height: 800px; /* Increased height */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.webview-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            background: #080808;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="#" class="brand">
+            <div class="logo">P</div>
+            Pipeline Optimization
+        </a>
+        <ul class="nav-items">
+            <li><a href="#problem" class="active">Problem</a></li>
+            <li><a href="#algorithm">Algorithm</a></li>
+            <li><a href="#code">Code</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <p class="subtitle">Algorithmic Solutions</p>
+            <h1 class="title">Optimizing Pipeline Construction</h1>
+            <p class="description">
+                Using Prim's Algorithm to build cost-effective and efficient water supply networks.
+            </p>
+            <div class="profile">
+                <img src="https://via.placeholder.com/150" alt="Your Picture">
+                <div class="profile-info">
+                    <h3>Your Name</h3>
+                    <p>Computer Science Student | Problem Solver</p>
+                    <p>Passionate about using algorithms to solve real-world problems.</p>
+                </div>
+            </div>
+            <button class="scroll-down" onclick="document.getElementById('problem').scrollIntoView({behavior: 'smooth'})">
+                Explore the Solution
+            </button>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="section" id="problem">
+        <h2 class="section-title">The Problem</h2>
+        <div class="section-content">
+            <h3>What is the Problem?</h3>
+            <p>
+                Constructing pipelines to supply water to all areas in a city or region is a costly and complex task. The goal is to connect all areas with pipelines while minimizing the total cost of construction.
+            </p>
+            <h3>Why is it Important?</h3>
+            <ul>
+                <li>Saves money by avoiding unnecessary construction.</li>
+                <li>Maximizes the reach of pipelines with the available budget.</li>
+                <li>Ensures equitable water distribution.</li>
+            </ul>
+            <h3>What Happens When It's Solved?</h3>
+            <p>
+                Solving this problem reduces costs, speeds up project completion, and ensures that everyone gets access to water. It also minimizes environmental impact and promotes sustainable development.
+            </p>
+        </div>
+    </section>
+
+    <!-- Algorithm Section -->
+    <section class="section" id="algorithm">
+        <h2 class="section-title">The Algorithm</h2>
+        <div class="section-content">
+            <h3>Prim's Algorithm</h3>
+            <p>
+                Prim's Algorithm is used to find the Minimum Spanning Tree (MST) of a graph. It ensures that all areas are connected with the least total cost.
+            </p>
+            <h3>Steps:</h3>
+            <ol>
+                <li>Represent the problem as a graph.</li>
+                <li>Start with a single node.</li>
+                <li>Add the cheapest edge connected to the current MST.</li>
+                <li>Repeat until all nodes are connected.</li>
+            </ol>
+            <h3>Why Prim's Algorithm?</h3>
+            <ul>
+                <li>Efficient and works well for large networks.</li>
+                <li>Guarantees the most cost-effective solution.</li>
+                <li>Easy to implement and understand.</li>
+            </ul>
+            <h3>Time and Space Complexity</h3>
+            <ul>
+                <li><strong>Time Complexity</strong>: O(V²) where V is the number of vertices.</li>
+                <li><strong>Space Complexity</strong>: O(V) for storing the parent and key arrays.</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Code Section -->
+    <section class="section" id="code">
+        <h2 class="section-title">The Code</h2>
+        <div class="section-content">
+            <h3>Prim's Algorithm Implementation</h3>
+            <div class="code-container">
+                <pre>
+#include iostream
+#include vector
+#include climits
+using namespace std;
+
+// Function to find the vertex with the minimum key value
+int findMinKeyVertex(vector<int>& key, vector<bool>& inMST, int numVertices) {
+    int minKey = INT_MAX; // Initialize minimum key value
+    int minIndex = -1;    // Initialize index of the vertex with minimum key
+
+    for (int v = 0; v < numVertices; v++) {
+        // Check if the vertex is not in MST and has a smaller key value
+        if (!inMST[v] && key[v] < minKey) {
+            minKey = key[v];
+            minIndex = v;
+        }
+    }
+    return minIndex;
+}
+
+// Function to print the constructed MST
+void printMST(vector<int>& parent, vector<vector<int>>& graph, int numVertices) {
+    cout << "Pipeline Connections:\n";
+    cout << "From -> To : Cost\n";
+    for (int v = 1; v < numVertices; v++) {
+        cout << parent[v] << " -> " << v << " : " << graph[v][parent[v]] << "\n";
+    }
+}
+
+// Function to construct and find the Minimum Spanning Tree (MST) using Prim's Algorithm
+void primMST(vector<vector<int>>& graph, int numVertices) {
+    vector<int> parent(numVertices); // Array to store the constructed MST
+    vector<int> key(numVertices);    // Key values used to pick the minimum weight edge
+    vector<bool> inMST(numVertices); // To represent whether a vertex is in MST
+
+    // Initialize all keys as infinite and inMST as false
+    for (int i = 0; i < numVertices; i++) {
+        key[i] = INT_MAX;
+        inMST[i] = false;
+    }
+
+    // Start with the first vertex
+    key[0] = 0;    // Make key 0 so that this vertex is picked first
+    parent[0] = -1; // First node is always the root of MST
+
+    // Construct the MST
+    for (int count = 0; count < numVertices - 1; count++) {
+        // Pick the vertex with the minimum key value
+        int u = findMinKeyVertex(key, inMST, numVertices);
+
+        // Add the picked vertex to the MST
+        inMST[u] = true;
+
+        // Update key values and parent index of adjacent vertices
+        for (int v = 0; v < numVertices; v++) {
+            // Update key only if the edge exists, the vertex is not in MST, and the edge weight is smaller than the current key
+            if (graph[u][v] && !inMST[v] && graph[u][v] < key[v]) {
+                parent[v] = u;
+                key[v] = graph[u][v];
+            }
+        }
+    }
+
+    // Print the constructed MST
+    printMST(parent, graph, numVertices);
+}
+
+int main() {
+    // Example graph representing pipeline costs between areas
+    int numVertices = 5; // Number of areas (vertices)
+    vector<vector<int>> graph = {
+        {0, 2, 0, 6, 0},  // Area 0
+        {2, 0, 3, 8, 5},  // Area 1
+        {0, 3, 0, 0, 7},  // Area 2
+        {6, 8, 0, 0, 9},  // Area 3
+        {0, 5, 7, 9, 0}   // Area 4
+    };
+
+    // Find and print the MST
+    primMST(graph, numVertices);
+
+    return 0;
+}
+                </pre>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2023 Pipeline Optimization. All rights reserved.</p>
+    </footer>
+</body>
+</html>
